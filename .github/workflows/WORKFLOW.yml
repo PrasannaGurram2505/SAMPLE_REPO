@@ -15,6 +15,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Cache node_modules
         uses: actions/cache@v3
         with:
@@ -23,18 +28,32 @@ jobs:
           restore-keys: |
             Linux-npm-
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'  # or your preferred version
+      - name: Initialize npm project (if missing)
+        run: |
+          if [ ! -f package.json ]; then
+            echo "Creating package.json"
+            npm init -y
+          fi
+
+      - name: Install a default dependency (if needed)
+        run: |
+          if [ ! -f package-lock.json ]; then
+            echo "Installing axios (example)"
+            npm install axios
+          fi
 
       - name: Install dependencies
-        run: npm install
-
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-      - name: Run a multi-line script
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          if [ -f package-lock.json ]; then
+            echo "Using npm ci"
+            npm ci
+          else
+            echo "Using npm install"
+            npm install
+          fi
+
+      - name: List generated files
+        run: ls -l
+
+      - name: Run app or scripts
+        run: echo "Ready to build or test your app"
